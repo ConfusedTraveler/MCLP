@@ -10,6 +10,8 @@ from torch.utils.data import DataLoader
 from dataloader import MyDataset
 from framework import MyModel
 
+# I add
+import sys
 
 def get_config(path, easy):
     """
@@ -18,6 +20,8 @@ def get_config(path, easy):
     :param path: yml path
     :return: EasyDict format
     """
+    # EasyDict 是一个 Python 第三方类，它让你可以像访问对象属性一样来访问字典的键值，让字典（dict）像对象（object）一样好用
+    # 例如：d = EasyDict({a:1, b:2}) 你可以用 d.a 来访问字典的键值，而不是 d['a']
     f = open(path, 'r', encoding='utf-8')
     res = yaml.safe_load(f)
     if easy:
@@ -80,6 +84,14 @@ def update_config(path, key_list, value):
 
 
 def get_mapper(dataset_path):
+    """
+    if location_mapper.npy and user_mapper.npy exist, return
+    else, create them and save them
+    location_mapper.npy: location2id
+    location2id: a dictionary, key is location, value is id
+    user_mapper.npy: user2id
+    user2id: a dictionary, key is user, value is id
+    """
     location_mapper_path = os.path.join(dataset_path, 'location_mapper.npy')
     user_mapper_path = os.path.join(dataset_path, 'user_mapper.npy')
 
@@ -129,7 +141,8 @@ def get_mapper(dataset_path):
         np.save(user_mapper_path, user2id)
     else:
         print('Program Exit')
-        exit()
+        # exit()
+        sys.exit()
 
 
 def run_test(dataset_path, model_path, model, device, epoch, test_only):

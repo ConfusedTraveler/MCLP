@@ -27,6 +27,7 @@ gpu_list = args.gpu
 torch.manual_seed(args.seed)
 os.environ["CUDA_VISIBLE_DEVICES"] = gpu_list
 dataset_path = f'./data/{args.dataset}'
+# 获取系统时间，并按照“年月日小时分钟”的格式进行格式化
 timestamp = time.strftime("%Y%m%d%H%M", time.localtime())
 
 save_path = args.dataset

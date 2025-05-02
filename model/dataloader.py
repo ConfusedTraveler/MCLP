@@ -16,6 +16,7 @@ class MyDataset(Dataset):
         self.load_mode = load_mode
         self.dataset_path = dataset_path
 
+        # item(): Converts the loaded NumPy array back into a Python dictionary
         self.user2id = np.load(os.path.join(dataset_path, 'user_mapper.npy'), allow_pickle=True).item()
         self.location2id = np.load(os.path.join(dataset_path, 'location_mapper.npy'), allow_pickle=True).item()
 
