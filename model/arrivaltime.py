@@ -7,17 +7,18 @@ class ArrivalTime(nn.Module):
         super(ArrivalTime, self).__init__()
         self.config = config
         self.base_dim = config.Embedding.base_dim
-        self.base_dim = config.Embedding.base_dim
+        # self.base_dim = config.Embedding.base_dim
         self.num_heads = 4
         self.head_dim = self.base_dim // self.num_heads
         self.num_users = config.Dataset.num_users
-        self.base_dim = config.Embedding.base_dim
+        # self.base_dim = config.Embedding.base_dim
         self.timeslot_num = 24
 
         if config.Model.at_type == 'attn':
             self.user_preference = nn.Embedding(self.num_users, self.base_dim)
             self.w_q = nn.ModuleList(
-                [nn.Linear(self.base_dim + self.base_dim, self.head_dim) for _ in range(self.num_heads)])
+                # [nn.Linear(self.base_dim + self.base_dim, self.head_dim) for _ in range(self.num_heads)])
+                [nn.Linear(self.base_dim, self.head_dim) for _ in range(self.num_heads)])
             self.w_k = nn.ModuleList(
                 [nn.Linear(self.base_dim, self.head_dim) for _ in range(self.num_heads)])
             self.w_v = nn.ModuleList(
@@ -30,9 +31,11 @@ class ArrivalTime(nn.Module):
         batch_size, sequence_length = hour_x.shape
         auxiliary_y = batch_data['timeslot_y']
         hour_mask = batch_data['hour_mask'].view(batch_size * sequence_length, -1)
+
         if self.config.Model.at_type == 'truth':
             at_embedded = timeslot_embedded[auxiliary_y]
             return at_embedded
+        
         if self.config.Model.at_type == 'attn':
             hour_x = hour_x.view(batch_size * sequence_length)
             head_outputs = []
