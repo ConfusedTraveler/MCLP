@@ -43,13 +43,16 @@ class MyDataset(Dataset):
 
     def preprocess_data(self, topic_num):
         trans_time_individual = []
+        # occur_time_individual: (user_num, 24)
         occur_time_individual = np.zeros(shape=(len(self.user2id), 24), dtype=np.float32)
+        # user_loc_matrix: (user_num, location_num)
         user_loc_matrix = np.zeros((len(self.user2id), len(self.location2id)))  # for LDA
 
         diff_data = []
         with open(os.path.join(self.dataset_path, f'train.csv'), 'r', encoding='utf8') as file:
             lines = file.readlines()
             for line in tqdm(lines, desc=f'Preprocess data'):
+                # trans_matrix_time: (24, 24)
                 trans_matrix_time = np.ones((24, 24))
                 stay_points = line.strip().split(',')[1:]
                 user = line.strip().split(',')[0]
