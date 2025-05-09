@@ -53,6 +53,9 @@ class MyDataset(Dataset):
                 trans_matrix_time = np.ones((24, 24))
                 stay_points = line.strip().split(',')[1:]
                 user = line.strip().split(',')[0]
+                # i:0 - len(stay_points) - 2
+                # len(stay_points) - 1没有下一个时刻，所以不包括在循环里，
+                # 且只更新了occur_time_individual和user_loc_matrix，没有更新trans_matrix_time
                 for i in range(len(stay_points) - 1):
                     location, timestamp = stay_points[i].split('@')
                     next_location, next_timestamp = stay_points[i + 1].split('@')
@@ -60,8 +63,11 @@ class MyDataset(Dataset):
                     next_weekday, next_hour = datetime_to_features(next_timestamp)
                     diff_data.append(abs(next_hour - hour))
                     i, j = hour, next_hour
+                    # 时间点之间的转移次数
                     trans_matrix_time[i, j] += 1
+                    # 在某个小时到达某个地点的次数
                     occur_time_individual[self.user2id[user]][hour] += 1
+                    # 某个用户在某个地点的次数
                     user_loc_matrix[self.user2id[user], self.location2id[location]] += 1
                     if i == len(stay_points) - 2:
                         occur_time_individual[self.user2id[user]][next_hour] += 1
@@ -69,6 +75,7 @@ class MyDataset(Dataset):
 
                 time_row_sums = trans_matrix_time.sum(axis=1)
                 trans_matrix_time = trans_matrix_time / time_row_sums[:, np.newaxis]
+                # 所有用户的转移矩阵存成一个list
                 trans_time_individual.append(trans_matrix_time)
 
         trans_time_individual = np.array(trans_time_individual)
@@ -89,6 +96,7 @@ class MyDataset(Dataset):
                     j = item[0]
                     prob = item[1]
                     user_topics[i, j] = prob
+            # user_topic: user在某个location的概率
             np.save(os.path.join(self.dataset_path, f'user_topic_loc_{topic_num}.npy'),
                     np.array(user_topics))
 
@@ -107,8 +115,11 @@ class MyDataset(Dataset):
                 user = line.strip().split(',')[0]
                 occur_time_user = occur_time_individual[self.user2id[user]]
                 stay_points = line.strip().split(',')[1:]
+                # divmod: 计算商和余数，返回一个元组
+                # sequence_count: 停留点序列总长度除以20，left: 剩余停留点个数
                 sequence_count, left = divmod(len(stay_points), self.config.Dataset.sequence_length)
                 assert sequence_count > 0, f"{user}'s does not have enough data."
+                # 减等号右边是一个整体
                 sequence_count -= 1 if left == 0 else 0
                 for i in range(sequence_count):
                     split_start = i * self.config.Dataset.sequence_length
