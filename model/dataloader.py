@@ -68,10 +68,11 @@ class MyDataset(Dataset):
                     i, j = hour, next_hour
                     # 时间点之间的转移次数
                     trans_matrix_time[i, j] += 1
-                    # 在某个小时到达某个地点的次数
+                    # 在某个小时出现的次数
                     occur_time_individual[self.user2id[user]][hour] += 1
                     # 某个用户在某个地点的次数
                     user_loc_matrix[self.user2id[user], self.location2id[location]] += 1
+                    # 下面这个i是hour啊
                     if i == len(stay_points) - 2:
                         occur_time_individual[self.user2id[user]][next_hour] += 1
                         user_loc_matrix[self.user2id[user], self.location2id[next_location]] += 1
@@ -98,7 +99,7 @@ class MyDataset(Dataset):
                 for item in lda[dictionary.doc2bow(user_doc)]:
                     j = item[0]
                     prob = item[1]
-                    # user_topic: user i在location j的概率
+                    # user_topic: user i从topic j采样的概率
                     user_topics[i, j] = prob
             np.save(os.path.join(self.dataset_path, f'user_topic_loc_{topic_num}.npy'),
                     np.array(user_topics))
@@ -112,6 +113,7 @@ class MyDataset(Dataset):
         occur_time_individual = np.load(os.path.join(self.dataset_path, f'occur_time_individual.npy'),
                                         allow_pickle=True)
         res = []
+        # 文件不存在，为什么以可读打开
         with open(os.path.join(self.dataset_path, f'{load_mode}.csv'), 'r', encoding='utf8') as file:
             lines = file.readlines()
             for line_i, line in enumerate(tqdm(lines, desc=f'Initial {load_mode} data')):
@@ -133,6 +135,7 @@ class MyDataset(Dataset):
                                   stay_points[split_start + 1:split_end + 1]]
                     timestamp_y = [item.split('@')[1] for item in stay_points[split_start + 1:split_end + 1]]
                     timeslot_y = []
+                    
                     hour_x = []
                     hour_mask = []
                     for item in timestamp_x:
@@ -143,9 +146,11 @@ class MyDataset(Dataset):
                         if mask.sum() == 24:
                             exit()
                         hour_mask.append(mask)
+                    
                     for item in timestamp_y:
                         weekday, hour = datetime_to_features(item)
                         timeslot_y.append(hour)
+
                     res.append(
                         {
                             'user': self.user2id[user],
@@ -156,7 +161,6 @@ class MyDataset(Dataset):
                             'timeslot_y': timeslot_y,
                         }
                     )
-
         np.save(os.path.join(self.dataset_path, f'{load_mode}.npy'), res)
 
     def load_npy_file(self, save_path):
@@ -175,7 +179,6 @@ class MyDataset(Dataset):
                 user_idx = data['user']
                 data['user_topic_loc'] = user_topic_loc[user_idx]
         return loaded_data
-
 
 def datetime_to_features(timestamp):
     dt = datetime.datetime.fromtimestamp(int(timestamp) // 1000)
