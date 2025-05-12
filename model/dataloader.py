@@ -98,8 +98,8 @@ class MyDataset(Dataset):
                 for item in lda[dictionary.doc2bow(user_doc)]:
                     j = item[0]
                     prob = item[1]
+                    # user_topic: user i在location j的概率
                     user_topics[i, j] = prob
-            # user_topic: user在某个location的概率
             np.save(os.path.join(self.dataset_path, f'user_topic_loc_{topic_num}.npy'),
                     np.array(user_topics))
 
