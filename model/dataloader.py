@@ -113,7 +113,6 @@ class MyDataset(Dataset):
         occur_time_individual = np.load(os.path.join(self.dataset_path, f'occur_time_individual.npy'),
                                         allow_pickle=True)
         res = []
-        # 文件不存在，为什么以可读打开
         with open(os.path.join(self.dataset_path, f'{load_mode}.csv'), 'r', encoding='utf8') as file:
             lines = file.readlines()
             for line_i, line in enumerate(tqdm(lines, desc=f'Initial {load_mode} data')):
