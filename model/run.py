@@ -10,6 +10,7 @@ from dataloader import MyDataset
 from framework import MyModel
 from tools import get_config, run_test, train_epoch, get_mapper, update_config, custom_collate
 
+# 假如转成ipynb这部分怎么写
 parser = argparse.ArgumentParser()
 parser.add_argument("--gpu", type=str, default="0")
 parser.add_argument('--seed', type=int, default=1234)
@@ -72,9 +73,13 @@ if __name__ == '__main__':
     best_val_loss = float("inf")
     start_time = time.time()
     num_epochs = config.Model.epoch
+    # 学习率调整函数
     warmup_scheduler = get_linear_schedule_with_warmup(
         optimizer,
+        # 预热阶段的 step 数，学习率线性从 0 增到初始值
         num_warmup_steps=len(dataloader) * 1,
+        # 总训练 step 数（一般是 dataloader 长度 × epoch）
+        # 预热之后再线性下降到 0
         num_training_steps=len(dataloader) * num_epochs,
     )
 

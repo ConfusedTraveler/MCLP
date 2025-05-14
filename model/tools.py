@@ -43,6 +43,7 @@ def get_user_input():
 def custom_collate(batch, device, config):
     batch_dict = {
         'user': torch.tensor([item['user'] for item in batch]).to(device),
+        # batch_dict['location_x'].shape: [batch_size, sequence]
         'location_x': torch.stack([torch.tensor(item['location_x']) for item in batch]).to(device),
         'hour': torch.stack([torch.tensor(item['hour']) for item in batch]).to(device),
         'location_y': torch.tensor([item['location_y'] for item in batch]).to(device),
@@ -227,13 +228,16 @@ def train_epoch(model, dataloader, optimizer, loss_fn, scheduler):
         location_output = model(batch_data)
         location_y = batch_data['location_y'].view(-1)
         location_loss = loss_fn(location_output, location_y)
+        # 返回一个batch的平均损失，返回的是只有一个标量的张量
         total_loss = location_loss.sum()
 
         optimizer.zero_grad()
         total_loss.backward()
+        # 为了防止梯度爆炸，使所有参数的梯度的L2范数不超过阈值1，如果超过阈值，就将所有梯度按比例缩放，使得它们的L2范数等于阈值1
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         optimizer.step()
         scheduler.step()
+        # 计算一个epoch的总损失，.item()的作用是把标量从张量里提取出来
         total_loss_epoch += total_loss.item()
 
     return total_loss_epoch / len(dataloader)
